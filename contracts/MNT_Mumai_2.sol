@@ -34,21 +34,21 @@ contract MNT is ERC20Capped
 
     modifier onlyOwner()
     {
-        require(msg.sender == contractOwner, "Error-MNT_MUMBAI.sol-Ownable");
+        require(msg.sender == contractOwner, "Error-MNT_MUMBAI_2.sol-Ownable");
         _;
     }
 
-    function buyTokensFromContract() external payable
+    function buyTokensFromContract(uint256 amount) external payable
     {
-        //This buy function is coded in a way that whatever amount the user sends to this function,
-        // they will get an equivalent amount of Monet Tokens in return.
-
-        require(msg.value != 0,"Error-MNT_MUMBAI.sol-Valueless_Transaction");
+        require(msg.value >= priceOf_N_TokensInWei(amount),"Error-MNT_MUMBAI_2.sol-Valueless_Transaction");
         // Mint tokens using _mint from ERC20.sol
         uint256 tokensToMint=msg.value*(10**uint256(decimals()))/zTokenPriceInWei() ;
-
-        require(balanceOf(msg.sender) + tokensToMint <= capPerAccount * (10**uint256(decimals())), "Error-MNT_MUMBAI.sol-Exceeds_Max_Balance");
-
+        
+        if (msg.sender!=contractOwner)
+        {
+            require(balanceOf(msg.sender) + tokensToMint <= capPerAccount * (10**uint256(decimals())), "Error-MNT_MUMBAI_2.sol-Exceeds_Max_Balance");
+        }
+        
         _mint(msg.sender,tokensToMint);
         emit TokensPurchased(msg.sender, tokensToMint, msg.value, block.timestamp, balanceOf(msg.sender));
     }
@@ -82,6 +82,11 @@ contract MNT is ERC20Capped
         return uint256(2*(10**18))/uint256(OneMATICInCents());
     }
 
+    function priceOf_N_TokensInWei(uint256 numberOfTokens) public view returns(uint256)
+    {
+        return numberOfTokens*zTokenPriceInWei();
+    }
+
     function WithdrawMintingFees() external onlyOwner
     {
         uint256 fees = address(this).balance;
@@ -95,4 +100,4 @@ contract MNT is ERC20Capped
 
 
 
-// Current contract address (Mumbai testnet): 0x7cede569617D98127aB1D008ce7a39F4F5E4DC52
+// Current contract address (Mumbai testnet): 0x7f34dC4087BcF75E58ecaabe68433A09F25e6e62
